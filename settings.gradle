@@ -6,6 +6,15 @@ pluginManagement {
     gradlePluginPortal()
   }
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'io.harness:gradle-cache:0.0.2'
+    }
+}
+
   plugins {
     id "com.gradle.develocity" version "3.17.5"
     id "com.gradle.common-custom-user-data-gradle-plugin" version "2.0.2"
@@ -68,21 +77,30 @@ develocity {
   }
 }
 
+apply plugin: 'io.harness.gradle-cache'
+
 buildCache {
-  local {
-    enabled = !isCiServer
-  }
-  if (gradle.startParameter.buildScan || (isCiServer && accessKeysAreMissing())) {
-    remote(HttpBuildCache) {
-      url = uri("$develocityServer/cache/")
-      push = false
+    local {
+        enabled = !isCiServer || false
     }
-  } else {
-    remote(develocity.buildCache) {
-      push = isCiServer
+    if (gradle.startParameter.buildScan || (isCiServer && accessKeysAreMissing())) {
+        remote(HttpBuildCache) {
+            url = uri("$develocityServer/cache/")
+            push = false
+        }
+    } else {
+        remote(develocity.buildCache) {
+            push = isCiServer
+        }
     }
-  }
+    remote(io.harness.Cache) {
+        accountId = System.getenv('HARNESS_ACCOUNT_ID')
+        token = System.getenv('HARNESS_PAT')
+        push = System.getenv('CI') == "true"
+        endpoint = System.getenv('HARNESS_CACHE_SERVICE_ENDPOINT')
+    }
 }
+
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
