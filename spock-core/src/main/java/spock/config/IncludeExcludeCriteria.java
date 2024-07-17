@@ -34,6 +34,7 @@ public class IncludeExcludeCriteria {
       else
         baseClasses.add(criterium);
   }
+// Testing BI
 
   public List<Class<? extends Annotation>> annotations = new ArrayList<>();
   public List<Class<?>> baseClasses = new ArrayList<>();
